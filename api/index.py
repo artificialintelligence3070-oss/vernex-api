@@ -30,7 +30,22 @@ def load_db():
             json.dump(default_data, f)
         return default_data
     with open(DB_FILE, 'r') as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except:
+            return {
+                "keys": {
+                    "vernex-admin-key": {
+                        "name": "Vernex Root Operator",
+                        "expiry": "2030-12-31",
+                        "limit": 100000,
+                        "used": 0,
+                        "status": "on",
+                        "allowed_apis": ["number", "adv", "numleak", "paytm", "aadhar", "adharfamily", "imei", "upi", "ifsc", "pincode", "vehicle", "challan", "bgmi", "pan", "git", "email", "insta", "snap", "tgidinfo"]
+                    }
+                },
+                "history": []
+            }
 
 def save_db(data):
     with open(DB_FILE, 'w') as f:
