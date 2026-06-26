@@ -9,7 +9,7 @@ DB_FILE = os.path.join('/tmp', 'vernex_vault.json')
 
 # GLOBAL BRANDING CONFIGURATION
 MY_NAME = "VERNEX"
-MY_CHANNEL_URL = "https://t.me/lynx_api"  # Updated to your new channel
+MY_CHANNEL_URL = "https://t.me/shayan_explorer_channel"  # Reverted to your main channel
 
 def load_db():
     if not os.path.exists(DB_FILE):
@@ -97,7 +97,7 @@ def forward_and_brand_request(endpoint_path, query_params, profile, db, log_iden
             raw_text = raw_text.replace("Ultra", MY_NAME)
             
         if "t.me/" in raw_text or "youtube.com/" in raw_text:
-            raw_text = raw_text.replace("https://t.me/ftgamer2", MY_CHANNEL_URL)
+            raw_text = raw_text.replace("https://t.me/lynx_api", MY_CHANNEL_URL)
             raw_text = raw_text.replace("https://youtube.com/@ftgamer2", MY_CHANNEL_URL)
             raw_text = raw_text.replace("https://t.me/bornex", MY_CHANNEL_URL)
             
