@@ -44,34 +44,11 @@
 
         <section id="apiDrawerSection" class="hidden glass-panel p-6 rounded-2xl border border-cyan-500/20 shadow-xl bg-slate-950/90 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-md font-bold text-cyan-400 font-mono uppercase tracking-wider">All Isolated API Nodes</h3>
+                <h3 class="text-md font-bold text-cyan-400 font-mono uppercase tracking-wider">All Available API Links (Paste custom key)</h3>
                 <button onclick="toggleApiDrawer()" class="text-xs text-slate-400 hover:text-red-400 uppercase font-mono font-bold">[ Close ]</button>
             </div>
-            <p class="text-xs text-slate-400 font-mono">URLs without hardcoded tokens. Append `?key=YOUR_KEY` manually:</p>
+            <p class="text-xs text-slate-400 font-mono">URLs without hardcoded tokens. Append `?key=YOUR_KEY` manually to execute directly:</p>
             <div id="drawerLinksGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-mono"></div>
-        </section>
-
-        <section class="glass-panel p-6 rounded-2xl border border-emerald-500/10 shadow-xl bg-gradient-to-br from-slate-950/80 to-slate-900/40 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 class="text-md font-bold text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    Autonomous AI Self-Healing Agent
-                </h3>
-                <span class="text-[10px] bg-emerald-950/60 border border-emerald-800 text-emerald-400 px-2 py-0.5 rounded font-mono uppercase">Agent Active</span>
-            </div>
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div class="text-xs font-mono text-slate-400 space-y-1">
-                    <p><span class="text-slate-500">Target Node:</span> Vercel Cloud Runtime State Engine</p>
-                    <p><span class="text-slate-500">Status:</span> <span id="agentStatus" class="text-emerald-400 font-bold">Monitoring system heartbeat...</span></p>
-                </div>
-                <button onclick="triggerAiHealer()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-2.5 rounded-xl transition-all text-xs uppercase tracking-widest shadow-md font-mono">
-                    Force State Alignment Fix
-                </button>
-            </div>
-            <div id="agentLogBlock" class="hidden bg-slate-950 p-3 rounded-xl border border-slate-900 font-mono text-[11px] text-slate-300 max-h-32 overflow-y-auto space-y-1"></div>
         </section>
 
         <section class="glass-panel p-6 rounded-2xl shadow-xl space-y-4">
@@ -202,7 +179,22 @@
     </main>
 
     <script>
+        // TRUE STATE BASE ENGINE (No background pull destruction)
         let database = { keys: {}, history: [] };
+
+        function loadFromLocalStorage() {
+            const cached = localStorage.getItem('vernex_master_db');
+            if (cached) {
+                database = JSON.parse(cached);
+            } else {
+                database = { keys: {}, history: [] };
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('vernex_master_db', JSON.stringify(database));
+            renderUI();
+        }
 
         function toggleApiDrawer() {
             const drawer = document.getElementById('apiDrawerSection');
@@ -243,40 +235,9 @@
                 div.className = "bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col justify-between gap-1";
                 div.innerHTML = `
                     <span class="text-cyan-400 font-bold">${api.name}</span>
-                    <input type="text" readonly value="${url}" onclick="this.select(); document.execCommand('copy'); alert('Copied endpoint URL!');" class="w-full bg-slate-950 border border-slate-800 text-[10px] p-1.5 rounded font-mono text-emerald-400 cursor-pointer focus:outline-none" />
+                    <input type="text" readonly value="${url}" onclick="this.select(); document.execCommand('copy'); alert('Copied Link structure!');" class="w-full bg-slate-950 border border-slate-800 text-[10px] p-1.5 rounded font-mono text-emerald-400 cursor-pointer focus:outline-none" />
                 `;
                 container.appendChild(div);
-            });
-        }
-
-        function triggerAiHealer() {
-            const logBlock = document.getElementById('agentLogBlock');
-            const statusText = document.getElementById('agentStatus');
-            logBlock.classList.remove('hidden');
-            logBlock.innerHTML = '';
-            
-            statusText.innerText = "Re-aligning distributed state caches...";
-            statusText.className = "text-amber-400 font-bold animate-pulse";
-
-            const logs = [
-                "[AGENT] Intercepting asynchronous local state payload...",
-                "[AGENT] FORCING IMMEDIATE SYNC: Compiling state data pipeline...",
-                "[AGENT] RE-WRITING: Injecting state variables directly into active worker session memory.",
-                "[AGENT] SUCCESS: State mismatch fixed. Active keys and status parameters fully re-synced!"
-            ];
-
-            logs.forEach((log, index) => {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = log.includes('SUCCESS') ? "text-emerald-400 font-bold" : "text-slate-400";
-                    line.innerText = log;
-                    logBlock.appendChild(line);
-                    if(index === logs.length - 1) {
-                        statusText.innerText = "State stable. Sync errors corrected.";
-                        statusText.className = "text-emerald-400 font-bold";
-                        pushLocalBackupToBackend();
-                    }
-                }, index * 600);
             });
         }
 
@@ -297,78 +258,40 @@
             const displayBlock = document.getElementById('sandboxResponseBlock');
             const preElement = document.getElementById('sandboxPre');
             displayBlock.classList.remove('hidden');
-            preElement.innerText = "Querying live matrix core...";
+            preElement.innerText = "Processing secure dynamic connection...";
 
             try {
-                // FORCE RESYNC STATE ALWAYS BEFORE ANY SANDBOX TEST
-                await pushLocalBackupToBackend();
-
-                const res = await fetch(`/api/${tool}?key=${key}&${paramName}=${value}`);
+                // EXPLICIT STATE PASSING VIA INGESTION HEADER
+                const res = await fetch(`/api/${tool}?key=${key}&${paramName}=${value}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Ecosystem-State': JSON.stringify(database)
+                    }
+                });
+                
                 const data = await res.json();
                 
-                preElement.className = data.status === "error" ? "text-red-400 whitespace-pre-wrap select-all" : "text-emerald-400 whitespace-pre-wrap select-all";
-                preElement.innerText = JSON.stringify(data, null, 4);
-                
-                syncDatabase();
-            } catch (err) {
-                preElement.className = "text-red-400 whitespace-pre-wrap select-all";
-                preElement.innerText = `Error compiling query stream: ${err.message}`;
-            }
-        }
-
-        // BULETPROOF FORCED SYNCHRONIZATION ARCHITECTURE
-        async function syncDatabase(payload = null) {
-            try {
-                if (payload) {
-                    localStorage.setItem('vernex_backup', JSON.stringify(payload));
-                }
-
-                const options = payload ? {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                } : { method: 'GET' };
-
-                const res = await fetch('/api/db', options);
-                const data = await res.json();
-                const currentDb = data.db || data;
-
-                if (currentDb && Object.keys(currentDb.keys).length === 0 && !payload) {
-                    const localBackup = localStorage.getItem('vernex_backup');
-                    if (localBackup) {
-                        const parsed = JSON.parse(localBackup);
-                        if (Object.keys(parsed.keys).length > 0) {
-                            await syncDatabase(parsed);
-                            return;
+                if (data.status === "error") {
+                    preElement.className = "text-red-400 whitespace-pre-wrap select-all";
+                    preElement.innerText = JSON.stringify(data, null, 4);
+                } else {
+                    preElement.className = "text-emerald-400 whitespace-pre-wrap select-all";
+                    preElement.innerText = JSON.stringify(data, null, 4);
+                    
+                    // IF API SUCCESS, LOG AND UPDATE USES LOCALLY IMMEDIATELY
+                    if (data.sync_update) {
+                        const target = data.sync_update.target_key;
+                        if (database.keys[target]) {
+                            database.keys[target].used = data.sync_update.new_used_value;
                         }
+                        database.history.insert(0, data.sync_update.log_entry);
+                        database.history = database.history.slice(0, 20);
+                        saveToLocalStorage();
                     }
                 }
-
-                if (currentDb) {
-                    database = currentDb;
-                    localStorage.setItem('vernex_backup', JSON.stringify(database));
-                    renderUI();
-                }
             } catch (err) {
-                console.error("Pipeline Sync Interrupted:", err);
-                const localBackup = localStorage.getItem('vernex_backup');
-                if (localBackup && !payload) {
-                    database = JSON.parse(localBackup);
-                    renderUI();
-                }
-            }
-        }
-
-        async function pushLocalBackupToBackend() {
-            const localBackup = localStorage.getItem('vernex_backup');
-            if (localBackup) {
-                try {
-                    await fetch('/api/db', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: localBackup
-                    });
-                } catch(e) { console.error("Immediate sync bypass err:", e); }
+                preElement.className = "text-red-400 whitespace-pre-wrap select-all";
+                preElement.innerText = `Error sending API Stream query: ${err.message}`;
             }
         }
 
@@ -380,7 +303,7 @@
 
             Object.keys(database.keys).forEach(tokenKey => {
                 const item = database.keys[tokenKey];
-                const active = String(item.status).trim().lower() === 'on';
+                const active = String(item.status).trim().toLowerCase() === 'on';
                 const card = document.createElement('div');
                 card.className = "bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl flex flex-col justify-between space-y-3";
                 
@@ -408,15 +331,15 @@
                 grid.appendChild(card);
             });
 
-            if (database.history.length === 0) {
-                logsTable.innerHTML = `<tr><td colspan="4" class="text-slate-600 text-center py-6 font-mono italic">Telemetry listener idle...</td></tr>`;
+            if (!database.history || database.history.length === 0) {
+                logsTable.innerHTML = `<tr><td colspan="4" class="text-slate-600 text-center py-6 font-mono italic">Telemetry listener idle... Keys history will pop up here instantly on success.</td></tr>`;
             } else {
                 database.history.forEach(log => {
                     const row = document.createElement('tr');
                     row.className = "hover:bg-slate-900/30 transition-colors";
                     row.innerHTML = `
-                        <td class="py-2.5 text-slate-500">${log.timestamp}</td>
-                        <td class="py-2.5 font-bold text-slate-300">${log.key_name}</td>
+                        <td class="py-2.5 text-slate-500">${log.timestamp || '00:00'}</td>
+                        <td class="py-2.5 font-bold text-slate-300">${log.key_name || 'System'}</td>
                         <td class="py-2.5 text-cyan-400 font-mono select-all">${log.queried_num}</td>
                         <td class="py-2.5 text-right text-emerald-400 font-bold">${log.status}</td>
                     `;
@@ -425,7 +348,7 @@
             }
         }
 
-        async function createNewKey() {
+        function createNewKey() {
             const name = document.getElementById('keyName').value.trim();
             const token = document.getElementById('keyString').value.trim();
             const expiry = document.getElementById('keyExpiry').value;
@@ -435,58 +358,49 @@
             const allowed_apis = [];
             checkboxes.forEach(cb => allowed_apis.push(cb.value));
 
-            if (!name || !token) return alert('Define token identities.');
+            if (!name || !token) return alert('Define token validation credentials.');
             if (allowed_apis.length === 0) return alert('Select at least one allowed API.');
 
             database.keys[token] = { name, expiry, limit, used: 0, status: 'on', allowed_apis };
             
-            // Immediate forced push
-            await syncDatabase(database);
-            await pushLocalBackupToBackend();
+            // Instantly local locking
+            saveToLocalStorage();
             
             document.getElementById('keyName').value = '';
             document.getElementById('keyString').value = '';
         }
 
-        async function toggleKey(token) {
+        function toggleKey(token) {
             if (database.keys[token]) {
-                const currentStatus = String(database.keys[token].status).trim().lower();
+                const currentStatus = String(database.keys[token].status).trim().toLowerCase();
                 database.keys[token].status = (currentStatus === 'on') ? 'off' : 'on';
-                
-                // Immediate State Save and Flash Push to eliminate Vercel Desync
-                localStorage.setItem('vernex_backup', JSON.stringify(database));
-                renderUI();
-                await syncDatabase(database);
-                await pushLocalBackupToBackend();
+                saveToLocalStorage();
             }
         }
 
-        async function deleteKey(token) {
-            if (confirm('Drop token profile?')) {
+        function deleteKey(token) {
+            if (confirm('Drop token profile permanently?')) {
                 delete database.keys[token];
-                await syncDatabase(database);
-                await pushLocalBackupToBackend();
+                saveToLocalStorage();
             }
         }
 
-        async function clearLogs() {
+        function clearLogs() {
             database.history = [];
-            await syncDatabase(database);
+            saveToLocalStorage();
+        }
+
+        // Extend prototypes safely for array manipulation
+        if (!Array.prototype.insert) {
+            Array.prototype.insert = function (index, item) {
+                this.splice(index, 0, item);
+            };
         }
 
         window.onload = () => {
             updateParamPlaceholder();
-            const cached = localStorage.getItem('vernex_backup');
-            if (cached) {
-                database = JSON.parse(cached);
-                renderUI();
-            }
-            syncDatabase();
-            setInterval(async () => {
-                // Periodic safety sync forced block
-                const backup = localStorage.getItem('vernex_backup');
-                if (backup) await syncDatabase(JSON.parse(backup));
-            }, 6000);
+            loadFromLocalStorage();
+            renderUI();
         };
     </script>
 </body>
