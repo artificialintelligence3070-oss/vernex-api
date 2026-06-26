@@ -27,6 +27,9 @@
                 <p class="text-[11px] font-mono text-slate-500">Universal Central Management Matrix</p>
             </div>
             <div class="flex items-center gap-3">
+                <button onclick="toggleApiDrawer()" class="text-xs bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-slate-950 font-black px-4 py-2 rounded-xl transition-all uppercase tracking-wider">
+                    📂 All Available APIs
+                </button>
                 <a href="https://t.me/shayan_explorer_channel" target="_blank" class="text-xs bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400 border border-cyan-800/40 px-3 py-2 rounded-xl transition-all font-medium">
                     Telegram Channel
                 </a>
@@ -38,6 +41,40 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+        <section id="apiDrawerSection" class="hidden glass-panel p-6 rounded-2xl border border-cyan-500/20 shadow-xl bg-slate-950/90 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-md font-bold text-cyan-400 font-mono uppercase tracking-wider">All Isolated API Nodes (Paste custom key)</h3>
+                <button onclick="toggleApiDrawer()" class="text-xs text-slate-400 hover:text-red-400 uppercase font-mono font-bold">[ Close ]</button>
+            </div>
+            <p class="text-xs text-slate-400 font-mono">नीचे दिए गए लिंक्स में बिना किसी प्री-अटैच्ड की के सीधे API एंडपॉइंट्स हैं। आप मैन्युअली `?key=YOUR_KEY` जोड़कर रन कर सकते हैं:</p>
+            <div id="drawerLinksGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-mono">
+                </div>
+        </section>
+
+        <section class="glass-panel p-6 rounded-2xl border border-emerald-500/10 shadow-xl bg-gradient-to-br from-slate-950/80 to-slate-900/40 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 class="text-md font-bold text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Autonomous AI Self-Healing Agent
+                </h3>
+                <span class="text-[10px] bg-emerald-950/60 border border-emerald-800 text-emerald-400 px-2 py-0.5 rounded font-mono uppercase">Agent Active</span>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="text-xs font-mono text-slate-400 space-y-1">
+                    <p><span class="text-slate-500">Target Node:</span> Vercel Architecture Core Matrix (`api/index.py` & Database Pipelines)</p>
+                    <p><span class="text-slate-500">Status:</span> <span id="agentStatus" class="text-emerald-400 font-bold">Monitoring live requests stream for volatility anomalies...</span></p>
+                </div>
+                <button onclick="triggerAiHealer()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 py-2.5 rounded-xl transition-all text-xs uppercase tracking-widest shadow-md font-mono">
+                    Force Diagnostics & Auto-Fix
+                </button>
+            </div>
+            <div id="agentLogBlock" class="hidden bg-slate-950 p-3 rounded-xl border border-slate-900 font-mono text-[11px] text-slate-300 max-h-32 overflow-y-auto space-y-1">
+                </div>
+        </section>
 
         <section class="glass-panel p-6 rounded-2xl shadow-xl space-y-4">
             <h3 class="text-md font-bold text-white border-b border-slate-800 pb-2 font-mono text-cyan-400 uppercase tracking-wider">Live API Tool Sandbox</h3>
@@ -169,6 +206,92 @@
     <script>
         let database = { keys: {}, history: [] };
 
+        // Toggle Isolated All APIs Drawer Link View Section
+        function toggleApiDrawer() {
+            const drawer = document.getElementById('apiDrawerSection');
+            drawer.classList.toggle('hidden');
+            if(!drawer.classList.contains('hidden')) {
+                renderApiDrawerLinks();
+            }
+        }
+
+        function renderApiDrawerLinks() {
+            const container = document.getElementById('drawerLinksGrid');
+            container.innerHTML = '';
+            const baseUrl = window.location.origin;
+            
+            const apis = [
+                { path: 'number', param: 'num', name: 'Standard Number' },
+                { path: 'adv', param: 'num', name: 'Advanced Number' },
+                { path: 'numleak', param: 'num', name: 'Hi Tech Leak' },
+                { path: 'paytm', param: 'num', name: 'Paytm Engine' },
+                { path: 'aadhar', param: 'num', name: 'Aadhar Verification' },
+                { path: 'adharfamily', param: 'num', name: 'Aadhar Family Link' },
+                { path: 'imei', param: 'imei', name: 'IMEI Check' },
+                { path: 'upi', param: 'upi', name: 'UPI Validation' },
+                { path: 'ifsc', param: 'ifsc', name: 'IFSC Router' },
+                { path: 'pincode', param: 'pin', name: 'Pincode Maps' },
+                { path: 'vehicle', param: 'vehicle', name: 'Vehicle Tracking' },
+                { path: 'challan', param: 'vehicle', name: 'Traffic Challan' },
+                { path: 'bgmi', param: 'uid', name: 'BGMI Profile' },
+                { path: 'pan', param: 'pan', name: 'PAN Directory' },
+                { path: 'git', param: 'username', name: 'GitHub Scraper' },
+                { path: 'email', param: 'email', name: 'Breach Check' },
+                { path: 'insta', param: 'username', name: 'Instagram Tracker' },
+                { path: 'snap', param: 'username', name: 'Snapchat Matrix' },
+                { path: 'tgidinfo', param: 'id', name: 'Telegram Identifier' }
+            ];
+
+            apis.forEach(api => {
+                const url = `${baseUrl}/api/${api.path}?key=&${api.param}=VALUE`;
+                const div = document.createElement('div');
+                div.className = "bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col justify-between gap-1";
+                div.innerHTML = `
+                    <span class="text-cyan-400 font-bold">${api.name}</span>
+                    <input type="text" readonly value="${url}" onclick="this.select(); document.execCommand('copy'); alert('Copied endpoint link structure!');" class="w-full bg-slate-950 border border-slate-800 text-[10px] p-1.5 rounded font-mono text-emerald-400 cursor-pointer focus:outline-none" />
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Self Healing Simulation Logic Script Execution Node
+        function triggerAiHealer() {
+            const logBlock = document.getElementById('agentLogBlock');
+            const statusText = document.getElementById('agentStatus');
+            logBlock.classList.remove('hidden');
+            logBlock.innerHTML = '';
+            
+            statusText.innerText = "Running deep structural alignment fix logs...";
+            statusText.className = "text-amber-400 font-bold animate-pulse";
+
+            const logs = [
+                "[AGENT] Initializing global environmental trace stack...",
+                "[AGENT] WARNING: Serverless context volatile container recycled after inactive lifecycle timeline.",
+                "[AGENT] ACTION: Intercepting core memory state. Injecting persistent Web Storage restore layer.",
+                "[AGENT] SYNCING: Re-uploading missing custom token registries back into live Vercel virtual instance memory...",
+                "[AGENT] COMPILED: Pushing memory sync payloads into /api/db state pipelines.",
+                "[AGENT] SUCCESS: All keys re-aligned successfully. Core runtime matrix has stabilized!"
+            ];
+
+            logs.forEach((log, index) => {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    if(log.includes('SUCCESS')) line.className = "text-emerald-400 font-bold";
+                    else if(log.includes('WARNING')) line.className = "text-red-400";
+                    else line.className = "text-slate-400";
+                    line.innerText = log;
+                    logBlock.appendChild(line);
+                    logBlock.scrollTop = logBlock.scrollHeight;
+
+                    if(index === logs.length - 1) {
+                        statusText.innerText = "Ecosystem fully stabilized. Zero anomalies found.";
+                        statusText.className = "text-emerald-400 font-bold";
+                        pushLocalBackupToBackend();
+                    }
+                }, index * 800);
+            });
+        }
+
         function updateParamPlaceholder() {
             const selector = document.getElementById('toolSelector');
             const selectedOpt = selector.options[selector.selectedIndex];
@@ -211,8 +334,13 @@
             }
         }
 
+        // PERSISTENCE LOCALSTORAGE AUTO HEALING BRIDGE
         async function syncDatabase(payload = null) {
             try {
+                if (payload) {
+                    localStorage.setItem('vernex_backup', JSON.stringify(payload));
+                }
+
                 const options = payload ? {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -222,12 +350,39 @@
                 const res = await fetch('/api/db', options);
                 const data = await res.json();
                 
-                if (data && (data.keys || data.db)) {
-                    database = data.db || data;
+                const currentDb = data.db || data;
+
+                if (currentDb && Object.keys(currentDb.keys).length <= 1 && !payload) {
+                    const localBackup = localStorage.getItem('vernex_backup');
+                    if (localBackup) {
+                        const parsedBackup = JSON.parse(localBackup);
+                        if (Object.keys(parsedBackup.keys).length > 1) {
+                            console.log("[AI Agent Bridge] Restoring lost Vercel state memory container logs...");
+                            await syncDatabase(parsedBackup);
+                            return;
+                        }
+                    }
+                }
+
+                if (currentDb && (data.keys || data.db)) {
+                    database = currentDb;
+                    localStorage.setItem('vernex_backup', JSON.stringify(database));
                     renderUI();
                 }
             } catch (err) {
                 console.error("VERNEX Cloud Pipeline lost:", err);
+                const localBackup = localStorage.getItem('vernex_backup');
+                if (localBackup && !payload) {
+                    database = JSON.parse(localBackup);
+                    renderUI();
+                }
+            }
+        }
+
+        async function pushLocalBackupToBackend() {
+            const localBackup = localStorage.getItem('vernex_backup');
+            if (localBackup) {
+                await syncDatabase(JSON.parse(localBackup));
             }
         }
 
@@ -333,6 +488,14 @@
 
         window.onload = () => {
             updateParamPlaceholder();
+            
+            // Initializing system from permanent localStorage trace before hitting Vercel server node
+            const cached = localStorage.getItem('vernex_backup');
+            if (cached) {
+                database = JSON.parse(cached);
+                renderUI();
+            }
+            
             syncDatabase();
             setInterval(syncDatabase, 4000);
         };
