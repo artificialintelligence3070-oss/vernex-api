@@ -9,7 +9,7 @@ DB_FILE = os.path.join('/tmp', 'vernex_vault.json')
 
 # GLOBAL BRANDING CONFIGURATION
 MY_NAME = "VERNEX"
-MY_CHANNEL_URL = "https://t.me/shayan_explorer_channel"
+MY_CHANNEL_URL = "https://t.me/lynx_api"  # Updated to your new channel
 
 def load_db():
     if not os.path.exists(DB_FILE):
