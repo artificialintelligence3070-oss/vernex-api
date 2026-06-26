@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from Flask import Flask, request, jsonify
 import requests
 import json
 import os
@@ -7,45 +7,22 @@ from datetime import datetime
 app = Flask(__name__)
 DB_FILE = os.path.join('/tmp', 'vernex_vault.json')
 
-# GLOBAL BRANDING CONFIGURATION
-MY_NAME = "VERNEX"
-MY_CHANNEL_URL = "https://t.me/shayan_explorer_channel"  # Reverted to your main channel
+GLOBAL_BRANDING = {
+    "name": "VERNEX",
+    "channel": "https://t.me/shayan_explorer_channel"
+}
 
 def load_db():
     if not os.path.exists(DB_FILE):
-        default_data = {
-            "keys": {
-                "vernex-admin-key": {
-                    "name": "Vernex Root Operator",
-                    "expiry": "2030-12-31",
-                    "limit": 100000,
-                    "used": 0,
-                    "status": "on",
-                    "allowed_apis": ["number", "adv", "numleak", "paytm", "aadhar", "adharfamily", "imei", "upi", "ifsc", "pincode", "vehicle", "challan", "bgmi", "pan", "git", "email", "insta", "snap", "tgidinfo"]
-                }
-            },
-            "history": []
-        }
+        default_data = {"keys": {}, "history": []}
         with open(DB_FILE, 'w') as f:
             json.dump(default_data, f)
         return default_data
-    with open(DB_FILE, 'r') as f:
-        try:
+    try:
+        with open(DB_FILE, 'r') as f:
             return json.load(f)
-        except:
-            return {
-                "keys": {
-                    "vernex-admin-key": {
-                        "name": "Vernex Root Operator",
-                        "expiry": "2030-12-31",
-                        "limit": 100000,
-                        "used": 0,
-                        "status": "on",
-                        "allowed_apis": ["number", "adv", "numleak", "paytm", "aadhar", "adharfamily", "imei", "upi", "ifsc", "pincode", "vehicle", "challan", "bgmi", "pan", "git", "email", "insta", "snap", "tgidinfo"]
-                    }
-                },
-                "history": []
-            }
+    except:
+        return {"keys": {}, "history": []}
 
 def save_db(data):
     with open(DB_FILE, 'w') as f:
@@ -57,12 +34,15 @@ def check_access_token(user_key, requested_endpoint):
         
     db = load_db()
     if user_key not in db["keys"]:
-        return False, jsonify({"status": "error", "message": "Invalid VERNEX API key"}), 403
+        return False, jsonify({"status": "error", "message": "Invalid VERNEX API key or session expired. Please refresh the dashboard."}), 403
         
     profile = db["keys"][user_key]
-    if profile.get("status", "on") != "on":
-        return False, jsonify({"status": "error", "message": "This authorization key is paused"}), 403
+    
+    # 1. STRICT STATUS CHECK (Fixes the Pause/Resume bug)
+    if str(profile.get("status")).strip().lower() != "on":
+        return False, jsonify({"status": "error", "message": "Access Denied: This VERNEX API key is currently PAUSED by the operator."}), 403
         
+    # 2. ALLOWED APIS RE-VALIDATION
     allowed_list = profile.get("allowed_apis", [])
     if requested_endpoint not in allowed_list:
         return False, jsonify({
@@ -70,15 +50,17 @@ def check_access_token(user_key, requested_endpoint):
             "message": f"Access Denied: This key does not have permission to use the '{requested_endpoint}' API."
         }), 403
         
+    # 3. STRICT REAL-TIME EXPIRATION CHECK
     try:
         expiry_date = datetime.strptime(profile.get("expiry"), "%Y-%m-%d").date()
         if datetime.now().date() > expiry_date:
-            return False, jsonify({"status": "error", "message": "This key allocation has expired"}), 403
+            return False, jsonify({"status": "error", "message": "Access Denied: This token allocation has reached its calendar EXPIRATION date."}), 403
     except:
-        return False, jsonify({"status": "error", "message": "Internal date compliance error"}), 500
+        return False, jsonify({"status": "error", "message": "Internal date compliance validation error."}), 500
 
+    # 4. QUOTA VOLUME CHECK
     if int(profile.get("used", 0)) >= int(profile.get("limit", 0)):
-        return False, jsonify({"status": "error", "message": "Daily request quota volume exhausted"}), 429
+        return False, jsonify({"status": "error", "message": "Daily request quota volume exhausted for this key."}), 429
         
     return True, profile, db
 
@@ -90,22 +72,29 @@ def forward_and_brand_request(endpoint_path, query_params, profile, db, log_iden
         response = requests.get(target_url, params=query_params, timeout=12)
         raw_text = response.text
         
+        if "Too many requests" in raw_text or "same number" in raw_text:
+            return jsonify({
+                "status": "error",
+                "message": "Rate Limit Triggered: Too many requests for this specific target. Please wait 5-10 minutes."
+            }), 429
+        
         for term in ["@ftgamer2", "@bornex", "ftgamer2", "bornex"]:
             if term in raw_text:
-                raw_text = raw_text.replace(term, MY_NAME.lower())
+                raw_text = raw_text.replace(term, GLOBAL_BRANDING["name"].lower())
         if "Ultra" in raw_text:
-            raw_text = raw_text.replace("Ultra", MY_NAME)
+            raw_text = raw_text.replace("Ultra", GLOBAL_BRANDING["name"])
             
         if "t.me/" in raw_text or "youtube.com/" in raw_text:
-            raw_text = raw_text.replace("https://t.me/lynx_api", MY_CHANNEL_URL)
-            raw_text = raw_text.replace("https://youtube.com/@ftgamer2", MY_CHANNEL_URL)
-            raw_text = raw_text.replace("https://t.me/bornex", MY_CHANNEL_URL)
+            raw_text = raw_text.replace("Https://t.me/lynx_api", GLOBAL_BRANDING["channel"])
+            raw_text = raw_text.replace("https://youtube.com/@ftgamer2", GLOBAL_BRANDING["channel"])
+            raw_text = raw_text.replace("https://t.me/bornex", GLOBAL_BRANDING["channel"])
             
         upstream_payload = json.loads(raw_text)
         
     except Exception as e:
         return jsonify({"status": "error", "message": f"Data stream clean fault: {str(e)}"}), 502
 
+    # Update usages cleanly
     profile["used"] = int(profile.get("used", 0)) + 1
     
     log_entry = {
@@ -120,8 +109,8 @@ def forward_and_brand_request(endpoint_path, query_params, profile, db, log_iden
 
     return jsonify({
         "status": "success",
-        "provider": MY_NAME,
-        "channel": MY_CHANNEL_URL,
+        "provider": GLOBAL_BRANDING["name"],
+        "channel": GLOBAL_BRANDING["channel"],
         "user": profile.get("name"),
         "remaining_calls": int(profile["limit"]) - int(profile["used"]),
         "result": upstream_payload
@@ -129,14 +118,14 @@ def forward_and_brand_request(endpoint_path, query_params, profile, db, log_iden
 
 @app.route('/api/db', methods=['GET', 'POST'])
 def handle_database_sync():
-    db = load_db()
     if request.method == 'POST':
-        req_data = request.get_json()
+        req_data = request.get_json() or {}
+        db = load_db()
         if "keys" in req_data: db["keys"] = req_data["keys"]
         if "history" in req_data: db["history"] = req_data["history"]
         save_db(db)
         return jsonify({"status": "success", "db": db})
-    return jsonify(db)
+    return jsonify(load_db())
 
 @app.route('/api/<path:endpoint>', methods=['GET'])
 def universal_router(endpoint):
